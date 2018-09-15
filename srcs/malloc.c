@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/15 20:27:37 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/09/15 23:34:29 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,10 +34,10 @@ static void *chunk_create(const size_t size, t_chunk *chunk)
 
 	//getchar();
 	chunk->next = (void *)chunk + chunk->size;
-	chunk->next->next = NULL;
+
 //	ft_printf("%p chunk next\n", chunk->next);
 	chunk->next->prev = chunk;
-	chunk->next->size = 0; 
+
 	return (chunk + 1);
 }
 
@@ -54,7 +54,7 @@ static bool	page_init(t_page **page)
 	if ((*page = mmap(NULL, MALLOC_TINY_MAX_SIZE, PROT_READ | PROT_WRITE,
 		MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED)
 			return (false);
-	ft_bzero(*page, MALLOC_TINY_MAX_SIZE);
+
 //	ft_printf("%p  page init didnt fail\n\n", *page);
 	return (true);
 }
@@ -71,6 +71,7 @@ static void		*malloc_handler(const size_t size, t_page **page)
 	if (!*page && !page_init(page))
 		return (NULL);
 	(*page)->current_size += size + sizeof(t_chunk);
+	(*page)->chunk_nb += 1;
 	return (chunk_create(size + sizeof(t_chunk), &(*page)->chunk));
 }
 

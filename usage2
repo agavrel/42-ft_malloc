@@ -1,1 +1,1 @@
-gcc test.c srcs/malloc_display.c srcs/malloc.c srcs/errors.c libft/libft.a -I libft/incl/ -I includes && ./a.out
+gcc test.c srcs/malloc_display.c srcs/malloc.c srcs/errors.c srcs/free.c libft/libft.a -I libft/incl/ -I includes && ./a.out

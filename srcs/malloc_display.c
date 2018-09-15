@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/20 18:46:19 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/15 19:15:33 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/09/15 23:24:06 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ static inline size_t	show_alloc_tiny_small(t_page *page, const char *str)
 {
 	t_chunk		*chunk;
 	size_t		total;
-	void		*current_ptr;
 
 	while (page)
 	{
@@ -24,9 +23,8 @@ static inline size_t	show_alloc_tiny_small(t_page *page, const char *str)
 		chunk = &page->chunk;
 		while (chunk)
 		{
-			current_ptr = (void *)chunk + sizeof(t_chunk);
-			ft_printf("%p - %p : %lu bytes\n", current_ptr, current_ptr + \
-			chunk->size, chunk->size);
+			ft_printf("%p - %p : 0x%lx bytes\n", (void *)chunk, \
+				(void *)chunk + chunk->size, chunk->size);
 			total += chunk->size;
 			chunk = chunk->next;
 		}
@@ -39,15 +37,13 @@ static inline size_t	show_alloc_large(void)
 {
 	t_chunk		*chunk;
 	size_t		total;
-	void		*current_ptr;
 
 	ft_printf("LARGE : %p\n", g_page[2]);
 	chunk = &g_page[2]->chunk;
 	while (chunk)
 	{
-		current_ptr = (void *)chunk + sizeof(t_chunk);
-		ft_printf("%p - %p : %lu bytes\n", current_ptr, current_ptr + \
-		chunk->size, chunk->size);
+		ft_printf("%p - %p : 0x%lx bytes\n", (void *)chunk, \
+			(void *)chunk + chunk->size, chunk->size);
 		total += chunk->size;
 		chunk = chunk->next;
 	}

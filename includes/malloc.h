@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/15 19:27:41 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/09/15 22:57:35 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,8 +66,8 @@ typedef struct		s_chunk
 
 typedef struct		s_page
 {
-	struct t_page	*next;
-	struct t_page	*prev;
+	struct s_page	*next;
+	struct s_page	*prev;
 	size_t			current_size;
 	size_t			chunk_nb;
 	struct s_chunk	chunk;

@@ -6,7 +6,7 @@
 #    By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/10/14 14:05:50 by angavrel          #+#    #+#              #
-#    Updated: 2018/06/04 22:26:49 by angavrel         ###   ########.fr        #
+#    Updated: 2018/09/15 23:52:01 by angavrel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -43,7 +43,7 @@ OBJ = $(addprefix $(OBJDIR)/, $(SRC:.c=.o))
 
 LIB = -Llibft -lft
 
-INCL = -Ilibft/incl -Iincludes
+INCL = -I libft/incl -I includes
 
 ############################## COLORS ##########################################
 
@@ -105,7 +105,7 @@ fclean: clean
 
 test: libft/libft.a ${NAME}
 	@${CC} ${INCL} ${LIB} test.c -L. -lft_malloc -o test
-	@./run.sh ./test
+	@./test
 
 bench: libft/libft.a ${NAME}
 	@${CC} ${INCL} ${LIB} test.c -o test
