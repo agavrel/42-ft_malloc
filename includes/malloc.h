@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/16 17:08:23 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/09/16 20:49:47 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ typedef struct		s_page
 	struct s_page	*prev;
 	size_t			current_size;
 	size_t			chunk_nb;
-	struct s_chunk	chunk;
+	struct s_chunk	*chunk;
 }					t_page;
 
 

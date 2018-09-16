@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/20 18:46:19 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/16 15:46:45 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/09/16 21:08:28 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ static inline size_t	show_alloc_tiny_small(t_page *page, const char *str)
 	while (page)
 	{
 		ft_printf("%s : %p\n", str, page);
-		chunk = &page->chunk;
+		chunk = page->chunk;
 		while (chunk)
 		{
 			ft_printf("%p - %p : 0x%lx bytes\n", (void *)chunk, \
@@ -31,7 +31,7 @@ static inline size_t	show_alloc_tiny_small(t_page *page, const char *str)
 		}
 		page = page->next;
 	}
-	return total;
+	return (total);
 }
 
 static inline size_t	show_alloc_large(void)
@@ -41,7 +41,7 @@ static inline size_t	show_alloc_large(void)
 
 	total = 0;
 	ft_printf("LARGE : %p\n", g_page[2]);
-	chunk = &g_page[2]->chunk;
+	chunk = g_page[2]->chunk;
 	while (chunk)
 	{
 		ft_printf("%p - %p : 0x%lx bytes\n", (void *)chunk, \
@@ -49,7 +49,7 @@ static inline size_t	show_alloc_large(void)
 		total += chunk->size;
 		chunk = chunk->next;
 	}
-	return total;
+	return (total);
 }
 
 void					show_alloc_mem(void)
