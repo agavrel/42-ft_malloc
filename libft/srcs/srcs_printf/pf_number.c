@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/06 06:02:33 by angavrel          #+#    #+#             */
-/*   Updated: 2017/05/06 06:02:36 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/09/16 13:05:02 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,7 @@ void	itoa_base_printf(uintmax_t n, int b, t_printf *p)
 	char		s[21];
 	int			ext;
 
+	ft_bzero(s, sizeof(s));
 	tmp = n;
 	while (tmp && ++p->printed)
 		tmp /= b;

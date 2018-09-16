@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/15 23:34:29 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/09/16 16:20:44 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,8 +141,8 @@ void			*ft_malloc(size_t size)
 	pthread_mutex_lock(&g_lock);
 	ptr = malloc_tiny(size);
 //	g_page[0].chunk_nb = 1;
-	ft_printf("\n\n%p ~ Malloc done\n\n", ptr);//
+//	ft_printf("\n\n%p ~ Malloc done\n\n", ptr);//
 	pthread_mutex_unlock(&g_lock);
-	show_alloc_mem();
+//	show_alloc_mem();
 	return ptr;
 }
