@@ -6,7 +6,7 @@
 #    By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/10/14 14:05:50 by angavrel          #+#    #+#              #
-#    Updated: 2018/09/15 23:52:01 by angavrel         ###   ########.fr        #
+#    Updated: 2018/10/03 20:12:18 by angavrel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -25,7 +25,8 @@ HOSTLIB = libft_malloc_$(HOSTTYPE).so
 SRC =	malloc.c \
 		free.c \
 		realloc.c \
-		malloc_display.c
+		malloc_display.c \
+		tools.c
 
 SRCDIR = srcs/
 

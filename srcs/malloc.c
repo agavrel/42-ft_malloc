@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/16 21:53:07 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/03 21:35:36 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,25 +21,30 @@ pthread_mutex_t	g_lock;
 ** chunk + 1 to prevent erasing data of the struct
 */
 
-static void *chunk_create(const size_t size, t_chunk **chunk)
+static t_chunk *chunk_create(void* addr, const size_t size, t_chunk *prev)
 {
-	while (*chunk && (*chunk)->size){
-	//	ft_printf("%p current chunk %zu\n", chunk, chunk->size);
-		*chunk = (*chunk)->next;
-	//	ft_printf("%p test chunk2 \n", chunk);
-	}
-	getchar();
 //	ft_printf("%p Sucessfully created chunk\n", chunk);
-	(*chunk)->size = size;//(size & 0x1f) ? size - (size & 0x1f) + 0x20 : size;ft_printf("GAAAc\n");
+	t_chunk		*chunk;
+
+	chunk = addr;
+	chunk->size = size;//(size & 0x1f) ? size - (size & 0x1f) + 0x20 : size;ft_printf("GAAAc\n");
 //	ft_printf("%p %zu chunk size\n", (char*)chunk ,chunk->size);
 
+	chunk->next = NULL;
+	chunk->prev = prev;
+	ft_printf("%lu\n", size);
+	getchar();
+	return (chunk);
+}
 
-	(*chunk)->next = (void *)(*chunk) + (*chunk)->size + 1;
-
-//	ft_printf("%p chunk next\n", chunk->next);
-	(*chunk)->next->prev = *chunk;
-
-	return (*chunk + 1);
+static size_t	page_size(type)
+{
+	ft_printf("page type= %lu\n", type);
+	if (type == 0)
+		return (128);
+	if (type == 1)
+		return (1024);
+	return (65536);
 }
 
 /*
@@ -49,83 +54,90 @@ static void *chunk_create(const size_t size, t_chunk **chunk)
 ** Finally we create a chunk corresponding to the size requested by the user
 */
 
-static bool	page_init(const size_t size, t_page **page)
+static t_chunk *page_init(const size_t size, t_page **page)
 {
 	t_chunk		*chunk;
+
 
 	if ((*page = mmap(NULL, MALLOC_TINY_MAX_SIZE, PROT_READ | PROT_WRITE,
 		MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED)
 			return (NULL);
-	(*page)->current_size += size + sizeof(t_chunk);
-	(*page)->chunk_nb += 1;
-	(*page)->chunk = chunk;
-	//(*page)->chunk =
-	//(*page)->chunk =
+
+	(*page)->current_size = page_size((size > MALLOC_TINY) \
+		+ (size > MALLOC_SMALL));
+	(*page)->chunk_nb = 1;
+	(*page)->next = NULL;
+	(*page)->prev = NULL;
 
 	ft_printf("%p  page init didnt fail\n\n", *page);
-	return (chunk_create(size + sizeof(t_chunk), &(*page)->chunk));
+	ft_printf("-----\npage current size: %zu\n", (*page)->current_size);
+
+	return (chunk_create((*page)->first_chunk, size + sizeof(t_chunk), NULL));
 }
+
+static t_chunk *page_create(const size_t size, t_page **page)
+{
+	t_chunk		*chunk;
+	t_page		*prev;
+	t_page		*current;
+
+	current = *page;
+	while (current && current->next)
+		current = current->next;
+	prev = current;
+	current = current->next;
+	chunk = page_init(size, &current);
+	prev->next = current;
+	current->prev = prev;
+
+	return (chunk);
+}
+
+
 
 /*
 ** creates a chained-list of free memory areas
 */
 
-static void		*malloc_handler(const size_t size, t_page **page)
+static void		*malloc_handler(const size_t size, t_page **page, size_t type)
 {
 	//if (page && (*page).current_size + size > MALLOC_TINY_MAX_SIZE)
 	//	page = (*page).next;
 	//getchar();
+	t_chunk		*chunk;
+	t_chunk		*prev;
+
 	if (!*page)
 	 	return (page_init(size, page));
-	(*page)->current_size += size + sizeof(t_chunk);
+	else if ((*page)->current_size + size + sizeof(t_chunk) > page_size(type))
+		return (page_create(size, page));
+
 	(*page)->chunk_nb += 1;
-	return (chunk_create(size + sizeof(t_chunk), &(*page)->chunk));
+	while (chunk->next)
+	{
+		prev  = chunk;
+		chunk = chunk->next;
+	}
+
+
+	return (chunk_create(chunk, size + sizeof(t_chunk), prev));
 }
 
 /*
 ** allocates memory accordingly to the desired size
 */
 
-static void 	*malloc_tiny(size_t size)
+static void 	*malloc_type(size_t size, int type)
 {
 	ft_printf("-----\ntiny: %zu\n", size);
 	void	*ptr;
-	t_page	**page = &g_page[0];
+	t_page	**page = &g_page[type];
 
-	ptr = malloc_handler(size, page);
+	ptr = malloc_handler(size, page, type);
 	//ft_printf("page current size: %zu\n", (*page)->current_size);
 
-	ft_printf("-----\npage current size: %zu\n", (*page)->current_size);
 
-	return (ptr);
-}
 
-static void 	*malloc_small(size_t size)
-{
-	void		*ptr = NULL;
-
-	ft_printf("small:  %zu\n", size);
-	t_page	*page = g_page[1];
-
-	return (malloc_handler(size, &page));//tmp
-	return (ptr);
-}
-
-/*
-** call large malloc and keep a way to free them
-*/
-
-static void 	*malloc_large(size_t size)
-{
-	void		*ptr = NULL;
-	ft_printf("large: %zu\n", size);
-	t_page	*page = g_page[2];
-
-	return (malloc_handler(size, &page));//tmp
-	/*
-	if (ptr = mmap(0, size, PROT_READ | PROT_WRITE, MAP_SHARED, -1, 0)) < 0)
-		return (NULL);
-	*/
 	return (ptr);
 }
 
@@ -137,16 +149,14 @@ static void 	*malloc_large(size_t size)
 void			*ft_malloc(size_t size)
 {
 	void			*ptr;
-	void 			*(*malloc_type[3])(size_t) = \
-								{&malloc_tiny, &malloc_small, &malloc_large};
-	const size_t	i = (size > MALLOC_TINY) + (size > MALLOC_SMALL);
+	const size_t	type = (size > MALLOC_TINY) + (size > MALLOC_SMALL);
 
 	//ft_printf("malloc 0 1 2 : %zu    size: %zu\n", i, size);//
 	if (size == 0)
 		return (NULL);
 	pthread_mutex_init(&g_lock, NULL);
 	pthread_mutex_lock(&g_lock);
-	ptr = malloc_tiny(size);
+	ptr = malloc_type(size, type);
 //	g_page[0].chunk_nb = 1;
 //	ft_printf("\n\n%p ~ Malloc done\n\n", ptr);//
 	pthread_mutex_unlock(&g_lock);

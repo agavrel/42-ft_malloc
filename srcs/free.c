@@ -6,12 +6,12 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:14:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/16 21:26:49 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/03 19:40:26 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "malloc.h"
-
+/*
 t_chunk	*get_page(t_chunk *chunk, size_t *type)
 {
 	t_page	*page;
@@ -25,7 +25,7 @@ t_chunk	*get_page(t_chunk *chunk, size_t *type)
 	{
 		page = g_page[i];
 		j = page->chunk_nb;
-		current_chunk = page->chunk;
+		current_chunk = page->first_chunk;
 		while (j)
 		{ft_printf("\n\n%p %pchunk\n\n\n", current_chunk, chunk);
 		//	ft_printf("\ni %zu    (%zu)\n\n", i, j);
@@ -51,7 +51,7 @@ t_chunk	*get_page(t_chunk *chunk, size_t *type)
 					//	current_chunk->prev = NULL;
 					}
 					else
-						ft_printf("WAAAAAZAAAAA\n");////*type |= 0b100;
+						ft_printf("WAAAAAZAAAAA\n");//// *type |= 0b100;
 
 				//	ft_bzero(current_chunk, sizeof(*current_chunk));
 					return (chunk);
@@ -63,12 +63,12 @@ t_chunk	*get_page(t_chunk *chunk, size_t *type)
 	}
 	return (NULL);
 }
-
+*/
 /*
 ** type is 0 for tiny, 1 for small and 2 for large, adding 4 mask if it was the
 ** very first link.
 */
-
+/*
 static inline void	free_chunk(t_chunk *chunk)
 {
 	t_chunk		*chunk_to_be_fred;
@@ -82,7 +82,7 @@ static inline void	free_chunk(t_chunk *chunk)
 //	ft_printf("type: %d\n", type & 0b100);
 	if (type & 0b100)
 	{
-		ft_printf("\n\n\npage chunk: %p     : page chunk next %p\n\n\n", g_page[type & 0b11]->chunk, g_page[type & 0b11]->chunk->next);
+		ft_printf("\n\n\npage chunk: %p     : page chunk next %p\n\n\n", g_page[type & 0b11]->first_chunk, g_page[type & 0b11]->first_chunk->next);
 		g_page[type & 0b11]->chunk = g_page[type & 0b11]->chunk->next;
 		if (g_page[type & 0b11]->chunk != NULL)
 			g_page[type & 0b11]->chunk->prev = NULL;
@@ -91,11 +91,12 @@ static inline void	free_chunk(t_chunk *chunk)
 	munmap(chunk, chunk->size);// reduce use of this <
 	chunk = NULL;
 }
-
+*/
 
 void    free(void *ptr)
 {
 //	ft_printf("\n\n%p chunk\n\n\n", ptr);
-	if (ptr)
-		free_chunk(ptr - sizeof(t_chunk));
+	return ;
+//	if (ptr)
+//		free_chunk(ptr - sizeof(t_chunk));
 }

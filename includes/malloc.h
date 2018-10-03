@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/09/16 20:49:47 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/03 20:59:37 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@
 # define TINY_NB	100
 # define TINY_SMALL	50
 
-#define MALLOC_TINY_MAX_SIZE	(1000 * 4096)
+#define MALLOC_TINY_MAX_SIZE	(1 * 4096)
 
 /*
 ** memory area struct
@@ -61,8 +61,15 @@ typedef struct		s_chunk
 {
 	struct s_chunk	*next;
 	struct s_chunk	*prev;
+	size_t			max_size;
 	size_t			size;
+	char			data[0];
 }					t_chunk;
+
+/*
+** char[0] to take the address of the first chunk to save memory and easily
+** manipulate pointer addresses. char[0] takes 0 bytes if null
+*/
 
 typedef struct		s_page
 {
@@ -70,7 +77,7 @@ typedef struct		s_page
 	struct s_page	*prev;
 	size_t			current_size;
 	size_t			chunk_nb;
-	struct s_chunk	*chunk;
+	char			first_chunk[0];
 }					t_page;
 
 
@@ -84,6 +91,9 @@ void				free(void *ptr);
 void				*calloc(size_t count, size_t size);
 void				show_alloc_mem(void);
 bool				errors(const int err, const char *str);
+void				putaddr(void *addr);
+void				ft_putsizebase(size_t nb, int size_base);
+
 
 extern t_page			*g_page[3];
 extern pthread_mutex_t	g_lock;
