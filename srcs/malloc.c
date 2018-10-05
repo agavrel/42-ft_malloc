@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/03 21:35:36 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/05 22:46:48 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ static t_chunk *chunk_create(void* addr, const size_t size, t_chunk *prev)
 	return (chunk);
 }
 
-static size_t	page_size(type)
+size_t			page_size(size_t type)
 {
 	ft_printf("page type= %lu\n", type);
 	if (type == 0)
@@ -56,21 +56,21 @@ static size_t	page_size(type)
 
 static t_chunk *page_init(const size_t size, t_page **page)
 {
-	t_chunk		*chunk;
+	t_chunk			*chunk;
+	const size_t	type = (size > MALLOC_TINY) + (size > MALLOC_SMALL);
 
 
-	if ((*page = mmap(NULL, MALLOC_TINY_MAX_SIZE, PROT_READ | PROT_WRITE,
+	if ((*page = mmap(NULL, type, PROT_READ | PROT_WRITE,
 		MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED)
 			return (NULL);
 
-	(*page)->current_size = page_size((size > MALLOC_TINY) \
-		+ (size > MALLOC_SMALL));
+	(*page)->max_size = page_size(type);
 	(*page)->chunk_nb = 1;
 	(*page)->next = NULL;
 	(*page)->prev = NULL;
 
 	ft_printf("%p  page init didnt fail\n\n", *page);
-	ft_printf("-----\npage current size: %zu\n", (*page)->current_size);
+	ft_printf("-----\npage current size: %zu\n", (*page)->max_size);
 
 	return (chunk_create((*page)->first_chunk, size + sizeof(t_chunk), NULL));
 }
@@ -93,34 +93,40 @@ static t_chunk *page_create(const size_t size, t_page **page)
 	return (chunk);
 }
 
-
-
 /*
 ** creates a chained-list of free memory areas
 */
 
 static void		*malloc_handler(const size_t size, t_page **page, size_t type)
 {
-	//if (page && (*page).current_size + size > MALLOC_TINY_MAX_SIZE)
-	//	page = (*page).next;
-	//getchar();
 	t_chunk		*chunk;
 	t_chunk		*prev;
+	t_page		*current_page;
 
 	if (!*page)
-	 	return (page_init(size, page));
-	else if ((*page)->current_size + size + sizeof(t_chunk) > page_size(type))
-		return (page_create(size, page));
-
-	(*page)->chunk_nb += 1;
-	while (chunk->next)
+		return (page_init(size, page));
+	current_page = *page;
+	prev = NULL;
+	while (current_page)
 	{
-		prev  = chunk;
-		chunk = chunk->next;
+		chunk = current_page->first_chunk;
+		while (chunk)
+		{
+			if (chunk->size == 0 && chunk->max_size >= sizeof(t_chunk) + size)
+			{
+				current_page->chunk_nb += 1;
+				return (chunk_create(chunk, size + sizeof(t_chunk), prev));
+			}
+			if (chunk->next)
+				prev  = chunk;
+			chunk = chunk->next;
+		}
+		if (current_page->next == NULL && chunk + sizeof(t_chunk) \
+			+ size > (char*)current_page + page_size(type))
+			return (page_create(size, page));
+		current_page = current_page->next;
 	}
-
-
-	return (chunk_create(chunk, size + sizeof(t_chunk), prev));
+	return (page_create(size, page));
 }
 
 /*
@@ -134,7 +140,7 @@ static void 	*malloc_type(size_t size, int type)
 	t_page	**page = &g_page[type];
 
 	ptr = malloc_handler(size, page, type);
-	//ft_printf("page current size: %zu\n", (*page)->current_size);
+	//ft_printf("page current size: %zu\n", (*page)->max_size);
 
 
 

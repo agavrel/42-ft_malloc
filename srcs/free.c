@@ -6,97 +6,73 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:14:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/03 19:40:26 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/05 21:44:20 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "malloc.h"
+
 /*
-t_chunk	*get_page(t_chunk *chunk, size_t *type)
+** chunk being fred have their size set to 0
+*/
+
+static inline void	free_chunk(t_chunk *chunk)
+{
+	chunk->size = 0;
+}
+
+/*
+** The chunk should be contained in the page hence we now need to find it
+*/
+
+static inline void	get_chunk_to_free(t_chunk *chunk, void *ptr)
+{
+	while (chunk)
+	{
+		if (chunk == ptr)
+		{
+			ft_printf("freeing chunk: %p       %p\n", ptr, chunk);
+			return free_chunk(ptr);
+		}
+		chunk = chunk->next;
+	}
+}
+
+/*
+** the page that contain
+*/
+
+static inline void	get_page_to_free(void *ptr)
 {
 	t_page	*page;
-	size_t	i;
-	size_t	j;
-	t_chunk	*current_chunk;
 
-	ft_printf("\n\n%p chunk\n\n\n", chunk);
+	size_t	i;
+
 	i = 0;
 	while (i < 3)
 	{
 		page = g_page[i];
-		j = page->chunk_nb;
-		current_chunk = page->first_chunk;
-		while (j)
-		{ft_printf("\n\n%p %pchunk\n\n\n", current_chunk, chunk);
-		//	ft_printf("\ni %zu    (%zu)\n\n", i, j);
-			if (current_chunk->size)
-			{
-			//	ft_printf("\nchunksize %zu\n\n", current_chunk->size);
-				--j;
-				if (current_chunk == chunk)
-				{
-				//	printf("\nTROUVE %p\n\n", &current_chunk);
-					--page->chunk_nb;
-					page->current_size -= current_chunk->size;
-				//	printf("\n %zu chunks left\n\n", page->chunk_nb);
-					*type = i;
-					if (current_chunk->next)
-					{
-						current_chunk->next->prev = current_chunk->prev;
-
-					}
-					if (current_chunk->prev)
-					{
-						current_chunk->prev->next = current_chunk->next;
-					//	current_chunk->prev = NULL;
-					}
-					else
-						ft_printf("WAAAAAZAAAAA\n");//// *type |= 0b100;
-
-				//	ft_bzero(current_chunk, sizeof(*current_chunk));
-					return (chunk);
-				}
-			}
-			current_chunk = current_chunk->next;
+		while (page)
+		{
+			if (page < ptr && ptr < (char *)page + page->max_size)
+				get_chunk_to_free(page->first_chunk, ptr);
+			page = page->next;
 		}
 		++i;
 	}
-	return (NULL);
 }
-*/
-/*
-** type is 0 for tiny, 1 for small and 2 for large, adding 4 mask if it was the
-** very first link.
-*/
-/*
-static inline void	free_chunk(t_chunk *chunk)
+
+void    			free(void *ptr)
 {
-	t_chunk		*chunk_to_be_fred;
-	size_t		type;
+	ft_printf("\n\n%p chunk\n\n\n", ptr);
+	size_t	type;
+	t_chunk	*chunk;
 
-	type = 0;
-	chunk_to_be_fred = get_page(chunk, &type);
-	ft_printf("chunk: %p\n", chunk);
-	ft_printf("size to be removed: %zu\n", chunk->size);
-
-//	ft_printf("type: %d\n", type & 0b100);
-	if (type & 0b100)
+	if (ptr)
 	{
-		ft_printf("\n\n\npage chunk: %p     : page chunk next %p\n\n\n", g_page[type & 0b11]->first_chunk, g_page[type & 0b11]->first_chunk->next);
-		g_page[type & 0b11]->chunk = g_page[type & 0b11]->chunk->next;
-		if (g_page[type & 0b11]->chunk != NULL)
-			g_page[type & 0b11]->chunk->prev = NULL;
-
+		chunk = ptr;
+	//	type = (chunk->size > MALLOC_TINY) \
+		 	+ (chunk->size > MALLOC_SMALL);
+		get_page_to_free(ptr);
 	}
-	munmap(chunk, chunk->size);// reduce use of this <
-	chunk = NULL;
-}
-*/
-
-void    free(void *ptr)
-{
-//	ft_printf("\n\n%p chunk\n\n\n", ptr);
-	return ;
-//	if (ptr)
-//		free_chunk(ptr - sizeof(t_chunk));
 }

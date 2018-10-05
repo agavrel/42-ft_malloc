@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/03 20:59:37 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/05 21:43:05 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,6 @@
 # define TINY_NB	100
 # define TINY_SMALL	50
 
-#define MALLOC_TINY_MAX_SIZE	(1 * 4096)
-
 /*
 ** memory area struct
 */
@@ -75,7 +73,7 @@ typedef struct		s_page
 {
 	struct s_page	*next;
 	struct s_page	*prev;
-	size_t			current_size;
+	size_t			max_size;
 	size_t			chunk_nb;
 	char			first_chunk[0];
 }					t_page;
@@ -93,7 +91,7 @@ void				show_alloc_mem(void);
 bool				errors(const int err, const char *str);
 void				putaddr(void *addr);
 void				ft_putsizebase(size_t nb, int size_base);
-
+size_t				page_size(size_t type);
 
 extern t_page			*g_page[3];
 extern pthread_mutex_t	g_lock;
