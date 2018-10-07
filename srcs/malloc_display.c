@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/20 18:46:19 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/03 20:20:07 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/06 18:19:48 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,14 @@ static inline size_t	show_alloc_tiny_small(t_page *page, const char *str)
 {
 	t_chunk		*chunk;
 	size_t		total;
+	size_t		pages_nb;
 
 	total = 0;
+	pages_nb = 0;
 	while (page)
 	{
 		ft_printf("%s : %p\n", str, page);
-		chunk = page->first_chunk;
+		chunk = (t_chunk *)page->first_chunk;
 		while (chunk)
 		{
 			putaddr((void *)chunk);
@@ -32,7 +34,9 @@ static inline size_t	show_alloc_tiny_small(t_page *page, const char *str)
 			chunk = chunk->next;
 		}
 		page = page->next;
+		++pages_nb;
 	}
+	ft_printf("Number of pages : %lu\n", pages_nb);
 	return (total);
 }
 
@@ -43,7 +47,7 @@ static inline size_t	show_alloc_large(void)
 
 	total = 0;
 	ft_printf("LARGE : %p\n", g_page[2]);
-	chunk = g_page[2]->first_chunk;
+	chunk = (t_chunk *)g_page[2]->first_chunk;
 	while (chunk)
 	{
 		putaddr((void *)chunk);

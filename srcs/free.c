@@ -6,17 +6,29 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:14:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/05 21:44:20 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/07 19:58:35 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "malloc.h"
 
 /*
-** chunk being fred have their size set to 0
+** Remove page if it contains no other chunks left
 */
 
-static inline void	free_chunk(t_chunk *chunk)
+static inline void		free_page(t_page *page)
+{
+	if (page->prev)
+		page->prev->next = page->next;
+	if (page->next)
+		page->next->prev = page->prev;
+	page = NULL;
+}
+/*
+** chunk being fred have their size set to 0 but they keep the max size info
+*/
+
+static inline void		free_chunk(t_chunk *chunk)
 {
 	chunk->size = 0;
 }
@@ -25,14 +37,19 @@ static inline void	free_chunk(t_chunk *chunk)
 ** The chunk should be contained in the page hence we now need to find it
 */
 
-static inline void	get_chunk_to_free(t_chunk *chunk, void *ptr)
+static inline void		get_chunk_that_has_to_be_fred(t_page *page, void *ptr)
 {
+	t_chunk		*chunk;
+
+	chunk = (t_chunk *)page->first_chunk;
 	while (chunk)
 	{
 		if (chunk == ptr)
 		{
-			ft_printf("freeing chunk: %p       %p\n", ptr, chunk);
-			return free_chunk(ptr);
+			free_chunk(ptr);
+			--page->chunk_nb;
+			if (page->chunk_nb == 0)
+				free_page(page);
 		}
 		chunk = chunk->next;
 	}
@@ -42,11 +59,10 @@ static inline void	get_chunk_to_free(t_chunk *chunk, void *ptr)
 ** the page that contain
 */
 
-static inline void	get_page_to_free(void *ptr)
+static inline void		get_page_containing_chunk(void *ptr)
 {
-	t_page	*page;
-
-	size_t	i;
+	t_page		*page;
+	size_t		i;
 
 	i = 0;
 	while (i < 3)
@@ -54,25 +70,24 @@ static inline void	get_page_to_free(void *ptr)
 		page = g_page[i];
 		while (page)
 		{
-			if (page < ptr && ptr < (char *)page + page->max_size)
-				get_chunk_to_free(page->first_chunk, ptr);
+			if ((char *)page < (char *)ptr \
+						&& (char *)ptr < (char *)page + page->max_size)
+				get_chunk_that_has_to_be_fred(page, ptr);
 			page = page->next;
 		}
 		++i;
 	}
 }
 
-void    			free(void *ptr)
+/*
+** first check that the *ptr is not null, if not we try to find a memory page
+** containg the ptr as a memory block (t_chunk)
+*/
+
+void    				free(void *ptr)
 {
-	ft_printf("\n\n%p chunk\n\n\n", ptr);
-	size_t	type;
-	t_chunk	*chunk;
+
 
 	if (ptr)
-	{
-		chunk = ptr;
-	//	type = (chunk->size > MALLOC_TINY) \
-		 	+ (chunk->size > MALLOC_SMALL);
-		get_page_to_free(ptr);
-	}
+		get_page_containing_chunk(ptr);
 }

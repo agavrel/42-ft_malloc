@@ -6,7 +6,7 @@
 #    By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/10/14 14:05:50 by angavrel          #+#    #+#              #
-#    Updated: 2018/10/03 20:12:18 by angavrel         ###   ########.fr        #
+#    Updated: 2018/10/07 19:43:12 by angavrel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -105,7 +105,7 @@ fclean: clean
 	@/bin/rm -f ${HOSTLIB}
 
 test: libft/libft.a ${NAME}
-	@${CC} ${INCL} ${LIB} test.c -L. -lft_malloc -o test
+	@${CC} ${INCL} ${LIB} test.c -o test
 	@./test
 
 bench: libft/libft.a ${NAME}

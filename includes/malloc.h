@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/05 21:43:05 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/07 19:55:45 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@
 # include <pthread.h>
 
 /*
-**
+** basic libc functions
 */
 
 # include "libft.h"
@@ -52,7 +52,7 @@
 # define TINY_SMALL	50
 
 /*
-** memory area struct
+** memory blocks struct
 */
 
 typedef struct		s_chunk
@@ -65,6 +65,7 @@ typedef struct		s_chunk
 }					t_chunk;
 
 /*
+
 ** char[0] to take the address of the first chunk to save memory and easily
 ** manipulate pointer addresses. char[0] takes 0 bytes if null
 */
@@ -83,7 +84,7 @@ typedef struct		s_page
 ** explicit name... read man if needed
 */
 
-void				*ft_malloc(size_t size);
+void				*malloc(size_t size);
 void				*realloc(void *ptr, size_t size);
 void				free(void *ptr);
 void				*calloc(size_t count, size_t size);
