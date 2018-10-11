@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/07 19:55:45 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/11 20:25:22 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,9 @@
 
 
 
-# define MALLOC_TINY	128
-# define MALLOC_SMALL	1024
-
+# define M_TINY		256
+# define M_SMALL	1024
+# define M_LARGE	65536
 # define TINY_NB	100
 # define TINY_SMALL	50
 

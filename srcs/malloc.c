@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/07 20:05:22 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/11 21:05:11 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,43 +16,46 @@
 ** g_page contains TINY, SMALL and LARGE areas of memory
 */
 
-t_page			*g_page[3] = {0, 0, 0};
+t_page			*g_page[3] = {NULL, NULL, NULL};
 pthread_mutex_t	g_lock;
 
 /*
-** chunk_create is to creates a chunk ~ a block of memory
-** if (size & 0x1f) is used to align memory to 32 bytes
-** chunk + 1 to prevent erasing data of the struct
+** Align memory on (2 ^ align) bytes with 'align' > 0
 */
 
-static t_chunk *chunk_create(void* addr, const size_t size, t_chunk *prev)
-{
-//	ft_printf("%p Sucessfully created chunk\n", chunk);
-	t_chunk		*chunk;
 
-	chunk = addr;
-	chunk->size = size;//(size & 0x1f) ? size - (size & 0x1f) + 0x20 : size;ft_printf("GAAAc\n");
-	//ft_printf("%p %zu chunk size\n", (char*)chunk ,chunk->size);
+static	size_t	ft_align(size_t size, size_t align)
+{
+	return (((size + align - 1) >> align) << align);
+}
+
+/*
+** chunk_create is to creates a chunk ~ a block of memory
+*/
+
+static t_chunk *chunk_create(t_chunk *chunk, size_t size, t_chunk *prev)
+{
+	chunk->size = ft_align(size, 4);
+	ft_printf("\n\n\nsuccessfully created chunk at address %p of size %zu and previous chunk:   %p\n\n\n\n", (char*)chunk->data, chunk->size, prev);
 	if (!chunk->max_size)
 	 	chunk->max_size = chunk->size;
 	chunk->next = NULL;
 	chunk->prev = prev;
-	if (chunk->prev)
-		chunk->prev->next = chunk;
+	if (prev)
+		prev->next = chunk;
 	return (chunk);
 }
 
 /*
-** returns page's size according to the type: Tiny, 1: Small, 2: Large
+** returns page's size according to the type: Tiny if (type == 0),
+** Small if (type == 1), Large if (type == 2)
 */
 
 size_t			page_size(size_t type)
 {
-	if (type == 0)
-		return (256);
-	if (type == 1)
-		return (1024);
-	return (65536);
+	static const size_t	malloc_size[3] = {M_TINY, M_SMALL, M_LARGE};
+
+	return (malloc_size[type]);
 }
 
 /*
@@ -62,40 +65,41 @@ size_t			page_size(size_t type)
 ** Finally we create a chunk corresponding to the size requested by the user
 */
 
-static t_chunk *page_init(const size_t size, t_page **page)
+static t_page **page_init(const size_t size)
 {
-	t_chunk			*chunk;
-	t_page			*this_page;
-	const size_t	type = (size - sizeof(t_chunk) > MALLOC_TINY) \
-		+ (size  - sizeof(t_chunk) > MALLOC_SMALL);
+	t_page		*page;
+	size_t		mmap_size;
+	const size_t	type = (size + sizeof(t_chunk) > M_TINY) \
+		+ (size + sizeof(t_chunk) > M_SMALL);
 
-	this_page = *page;
-	if ((this_page = mmap(NULL, page_size(type), PROT_READ | PROT_WRITE,
+	mmap_size = page_size(type);
+	if ((page = mmap(NULL, size, PROT_READ | PROT_WRITE,
 		MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED)
 			return (NULL);
-	this_page->max_size = page_size(type);
-	this_page->chunk_nb = 1;
-	this_page->next = NULL;
-	this_page->prev = NULL;
-	return (chunk_create(this_page->first_chunk, size, NULL));
+	page->max_size = mmap_size;
+	page->chunk_nb = 1;
+	page->next = NULL;
+	page->prev = NULL;
+	chunk_create((t_chunk *)page->first_chunk, size, NULL);
+	return (&page);
 }
 
 static t_chunk *page_create(const size_t size, t_page **page)
 {
-	t_chunk		*chunk;
+	t_chunk		**chunk;
 	t_page		*prev;
 	t_page		*current;
 
+	ft_printf("\n\nhelooooo\n\n\n");//
 	current = *page;
 	while (current && current->next)
 		current = current->next;
 	prev = current;
 	current = current->next;
-	chunk = page_init(size, &current);
 	prev->next = current;
 	current->prev = prev;
 
-	return (chunk);
+	return (*page_init(size));
 }
 
 /*
@@ -113,28 +117,33 @@ static void		*malloc_handler(const size_t size, t_page **page, size_t type)
 	t_chunk		*prev;
 	t_page		*cur_page;
 	size_t		page_size;
+	t_page		*prev_page;
 
-	cur_page = *page;
+	chunk = (t_chunk *)cur_page->first_chunk;
+	ft_printf("entering malloc handler\n\n");
+	cur_page = *page;//ft_printf("chunk size %lu\n\n", chunk->size);
 	page_size = sizeof(t_page);
 	while (cur_page)
 	{
 		chunk = (t_chunk *)cur_page->first_chunk;
 		while (chunk)
 		{
+			ft_printf("chunk size %lu\n\n", chunk->size);
 			if (chunk->size == 0 && chunk->max_size >= size \
 				&& ++cur_page->chunk_nb)
-				return (chunk_create(chunk, size, prev));
+				return (chunk_create(chunk, size, (t_chunk *)chunk->prev->data));
+
 			page_size += chunk->max_size;
 			prev  = chunk;
 			chunk = chunk->next;
 		}
 		if (page_size + size < cur_page->max_size && ++cur_page->chunk_nb)
 		{
-			ft_printf("heeey");
+			ft_printf("creating new chunk in the page\n");
 			return (chunk_create((char *)cur_page->first_chunk \
-				+ page_size, size, prev));
+				+ page_size, size, (t_chunk *)prev->data));
 		}
-
+		prev_page = cur_page;
 		cur_page = cur_page->next;
 	}
 	return (page_create(size, page));
@@ -149,13 +158,10 @@ static void 	*malloc_type(size_t size, int type)
 	t_page	**page;
 
 	page = &g_page[type];
-	if (!(*page))
-	{
-		ft_printf("\nheeaaaey %p\n", page);
-		return (page_init(size + sizeof(t_chunk), page));
-	}
-
-	return (malloc_handler(size + sizeof(t_chunk), page, type));
+	if (*page)
+		return (malloc_handler(size, page, type));
+	ft_printf("\nCREATING NEW PAGE %p %lu\n", page, type);//
+	return (page = page_init(size));
 }
 
 /*
@@ -164,23 +170,27 @@ static void 	*malloc_type(size_t size, int type)
 */
 
 void			*malloc(size_t size)
-{
+{ft_putstr("ENTERING budsOF SIZE \n");//
 	void			*ptr;
-	const size_t	type = (size > MALLOC_TINY) + (size > MALLOC_SMALL);
+	const size_t	type = (size > M_TINY) + (size > M_SMALL);
 	ft_printf("ENTERING MALLOC OF SIZE %lu\n", size);//
 	if (size == 0)
 		return (NULL);
 	pthread_mutex_init(&g_lock, NULL);
 	pthread_mutex_lock(&g_lock);
-	ptr = malloc_type(size, type);
+	ptr = malloc_type(size + sizeof(t_chunk), type);
 	pthread_mutex_unlock(&g_lock);
 
 	ft_printf("checking malloc\n", ptr);//
 
 	int i = 0;
 	while (i < size)
-	{ft_printf("%d\n", i);//
+	{
+
+
 		((char *)ptr)[i] = 42;
+		if (i % 20)
+			ft_printf("%d\n", i);//
 		i++;
 	}
 
