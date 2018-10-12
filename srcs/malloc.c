@@ -20,13 +20,13 @@ t_page			*g_page[3] = {NULL, NULL, NULL};
 pthread_mutex_t	g_lock;
 
 /*
-** Align memory on (2 ^ align) bytes with 'align' > 0
+** Align memory on (align) bytes with 'align' > 0 and power of 2
 */
 
 
 static	size_t	ft_align(size_t size, size_t align)
 {
-	return (((size + align - 1) >> align) << align);
+	return ((size + align - 1) & ~(align - 1));
 }
 
 /*
@@ -36,7 +36,7 @@ static	size_t	ft_align(size_t size, size_t align)
 static t_chunk *chunk_create(t_chunk *chunk, size_t size, t_chunk *prev)
 {
 	ft_printf("\n\naddress %p", chunk);
-	chunk->size = ft_align(size, 4);
+	chunk->size = ft_align(size, 16);
 	if (!chunk->max_size)
 	 	chunk->max_size = chunk->size;
 	chunk->next = NULL;
