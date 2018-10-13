@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/03 20:09:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/03 20:18:27 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/13 21:17:24 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,4 +54,26 @@ void		ft_putsizebase(size_t nb, int size_base)
 void		putaddr(void *addr)
 {
 	ft_putsizebase((size_t)addr, 16);
+}
+
+/*
+** Align memory on (mask + 1) bytes with 'align' > 0
+*/
+
+
+size_t			ft_align(size_t size, size_t mask)
+{
+	return ((size + mask) & ~mask);
+}
+
+/*
+** returns page's size according to the type: Tiny if (type == 0),
+** Small if (type == 1), Large if (type == 2)
+*/
+
+size_t			page_size(size_t type)
+{
+	static const size_t	malloc_size[3] = {M_TINY, M_SMALL, M_LARGE};
+
+	return (malloc_size[type]);
 }

@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:14:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/07 19:58:35 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/13 20:38:02 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,8 @@ static inline void		get_page_containing_chunk(void *ptr)
 void    				free(void *ptr)
 {
 
-
+	ft_printf("ENTERING FREE %p\n", ptr);
 	if (ptr)
 		get_page_containing_chunk(ptr);
+	ft_printf("EXITING FREE \n");
 }

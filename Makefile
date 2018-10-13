@@ -6,7 +6,7 @@
 #    By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/10/14 14:05:50 by angavrel          #+#    #+#              #
-#    Updated: 2018/10/11 23:13:22 by angavrel         ###   ########.fr        #
+#    Updated: 2018/10/13 20:36:39 by angavrel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -106,7 +106,7 @@ fclean: clean
 
 test: libft/libft.a ${NAME}
 	@${CC} ${INCL} ${LIB} test.c -o test
-	@./test
+	@./run.sh ./test
 
 bench: libft/libft.a ${NAME}
 	@${CC} ${INCL} ${LIB} test.c -o test

@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/11 22:51:23 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/13 21:16:19 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,7 @@ bool				errors(const int err, const char *str);
 void				putaddr(void *addr);
 void				ft_putsizebase(size_t nb, int size_base);
 size_t				page_size(size_t type);
+size_t				ft_align(size_t size, size_t mask);
 
 extern t_page			*g_page[3];
 extern pthread_mutex_t	g_lock;

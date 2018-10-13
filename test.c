@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/15 14:56:24 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/11 23:09:42 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/10/13 20:38:58 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,13 +26,13 @@ int main(int ac, char **av)
 	ptr[2] = malloc(600);
 	ptr[3] = malloc(600);
 	ptr[4] = malloc(200);
-	show_alloc_mem();
+//	show_alloc_mem();
 	free(ptr[1]);
 	free(ptr[2]);
 	free(ptr[3]);
 	//free(ptr[3]);
-	show_alloc_mem();
-	puts("COOL");
+	//show_alloc_mem();
+	// puts("COOL");
     //malloc_display();
     //free(ptr);
     return (0);
