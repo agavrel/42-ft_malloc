@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/13 21:16:19 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/16 21:49:06 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,9 @@
 # include <sys/types.h>
 # include <stdlib.h>
 # include <stdbool.h>
+# include <stddef.h>
+# include <limits.h>
+
 
 /*
 ** malloc and free lib
@@ -42,60 +45,75 @@
 /*
 ** malloc size thresholds to point to most suitable method
 */
+# define MALLOC_TINY	0
+# define MALLOC_SMALL	1
+# define MALLOC_LARGE	2
+# define MALLOC_SIZE(x)	(((x) > ZONE_TINY) + ((x) > ZONE_SMALL))
+# define ZONE_SMALL		(1024)
+# define ZONE_TINY		(64)
+# define MALLOC_ZONE	(128)
 
 
-
-# define M_TINY		256
-# define M_SMALL	1024
-# define M_LARGE	65536
-# define TINY_NB	100
-# define TINY_SMALL	50
+/*
+** MALLOC_PAGE(size) returns new_size with
+**     (new_size > size)
+**     &&
+**     (new_size % MALLOC_PAGE_S == 0)
+*/
+# define PAGE_S			(4096)
+# define MALLOC_PAGE(x)	((x) + (!!((x) % PAGE_S) * (PAGE_S - (x) % PAGE_S)))
 
 /*
 ** memory blocks struct
 */
 
-typedef struct		s_chunk
+# define MALLOC_MINIMAP	64
+
+typedef struct				s_block
 {
-	struct s_chunk	*next;
-	struct s_chunk	*prev;
-	size_t			max_size;
-	size_t			size;
-	char			data[0];
-}					t_chunk;
+	struct s_block		*next;
+	struct s_block		*prev;
+	size_t					size;
+}							t_block;
+
+typedef struct				s_page
+{
+	struct s_page			*next;
+	struct s_page			*prev;
+	t_block				*alloc;
+	t_block				*free;
+}							t_page;
+
+typedef struct				s_malloc_pages
+{
+	t_page					*tiny;
+	t_page					*small;
+	t_block				*large;
+}							t_malloc_pages;
+
+extern t_malloc_pages		g_malloc_pages;
+extern pthread_mutex_t		g_malloc_mutex;
+
+int							malloc_out_of_zones(const void *ptr);
 
 /*
-
-** char[0] to take the address of the first chunk to save memory and easily
-** manipulate pointer addresses. char[0] takes 0 bytes if null
+** ***************************** malloc public *********************************
 */
 
-typedef struct		s_page
-{
-	struct s_page	*next;
-	struct s_page	*prev;
-	size_t			max_size;
-	size_t			chunk_nb;
-	char			first_chunk[0];
-}					t_page;
+void						free(void *ptr);
+void						*malloc(size_t size);
+void						*calloc(size_t count, size_t size);
+void						*realloc(void *ptr, size_t size);
+void						*reallocf(void *ptr, size_t size);
 
+void						show_alloc_mem();
+void						show_alloc_mem_hex(void *ptr);
+void						show_alloc_mem_minimap();
 
-/*
-** explicit name... read man if needed
-*/
-
-void				*malloc(size_t size);
-void				*realloc(void *ptr, size_t size);
-void				free(void *ptr);
-void				*calloc(size_t count, size_t size);
-void				show_alloc_mem(void);
 bool				errors(const int err, const char *str);
 void				putaddr(void *addr);
 void				ft_putsizebase(size_t nb, int size_base);
 size_t				page_size(size_t type);
 size_t				ft_align(size_t size, size_t mask);
-
-extern t_page			*g_page[3];
-extern pthread_mutex_t	g_lock;
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:13:21 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/13 21:15:42 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/16 22:17:00 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,34 +26,67 @@
 ** additional memory is also zero-filled.
 */
 
-void	*realloc(void *ptr, size_t size)
+static inline int	is_reallocable(t_block *block, size_t size)
 {
-	void		*new_ptr;
-	t_chunk		*original_chunk;
+	const int		malloc_size = MALLOC_SIZE(block->size);
 
-	new_ptr = malloc(size);
-	if (new_ptr != ptr)
-	{
-		original_chunk = ptr;
-		if (size > original_chunk->max_size)
-			size = original_chunk->max_size;
-		ft_memcpy(new_ptr, ptr, size);
-		free(ptr);
-	}
-	return (new_ptr);
+	if (malloc_size == MALLOC_TINY)
+		return (size <= ZONE_TINY);
+	else if (malloc_size == MALLOC_SMALL)
+		return (size <= ZONE_SMALL);
+	return (size + sizeof(t_block) <= \
+			MALLOC_PAGE(block->size + sizeof(t_block)));
 }
 
-/*
-** The calloc() function contiguously allocates enough space for count objects
-** that are size bytes of memory each and returns a pointer to the allocated
-** memory.  The allocated memory is filled with bytes of value zero.
-*/
-
-void			*calloc(size_t count, size_t size)
+static inline void	*bitter_realloc(void *ptr, size_t size)
 {
+	void			*new;
+	size_t			old_size;
+
+	if (!(new = malloc(size)))
+		return (NULL);
+	old_size = ((t_block *)(ptr - sizeof(t_block)))->size;
+	ft_memcpy(new, ptr, old_size);
+	free(ptr);
+	return (new);
+}
+
+void				*realloc(void *ptr, size_t size)
+{
+	if (!ptr || !size)
+		return (malloc(size));
+	pthread_mutex_lock(&g_malloc_mutex);
+	if (malloc_out_of_zones(ptr))
+	{
+		pthread_mutex_unlock(&g_malloc_mutex);
+		return (NULL);
+	}
+	if (is_reallocable(ptr - sizeof(t_block), size))
+	{
+		((t_block *)(ptr - sizeof(t_block)))->size = size;
+		pthread_mutex_unlock(&g_malloc_mutex);
+		return (ptr);
+	}
+	pthread_mutex_unlock(&g_malloc_mutex);
+	return (bitter_realloc(ptr, size));
+}
+
+void				*reallocf(void *ptr, size_t size)
+{
+	void			*new;
+
+	if (!(new = realloc(ptr, size)))
+		free(ptr);
+	return (new);
+}
+
+void				*calloc(size_t count, size_t size)
+{
+	const size_t	area = count * size;
 	void			*ptr;
 
-	if ((ptr = malloc(size)))
-		ft_memset(ptr, 0, ft_align(count * size, 0xf));
+
+	if ((ptr = malloc(area)))
+		ft_bzero(ptr, area);
 	return (ptr);
 }

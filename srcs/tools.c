@@ -6,11 +6,51 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/03 20:09:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/13 21:17:24 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/16 22:09:32 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "malloc.h"
+
+static inline int	is_not_in_chunks(const void *ptr, t_block *chunk)
+{
+	while (chunk)
+	{
+		if (ptr >= (void*)chunk && \
+			ptr <= (void*)chunk + sizeof(t_block) + chunk->size)
+			return (!((void*)chunk + sizeof(t_block) == ptr));
+		chunk = chunk->next;
+	}
+	return (2);
+}
+
+int					malloc_out_of_zones(const void *ptr)
+{
+	const size_t	zone_sizes[3] = {ZONE_TINY, ZONE_SMALL, 0};
+	t_page	*mem;
+	int				pos;
+	int				i;
+
+	if (!((pos = is_not_in_chunks(ptr, g_malloc_pages.large)) & 2))
+		return (pos);
+	i = -1;
+	while (zone_sizes[++i])
+	{
+		mem = i ? g_malloc_pages.small : g_malloc_pages.tiny;
+		while (mem)
+		{
+			if (ptr >= (void*)mem && \
+				ptr <= (void*)mem + MALLOC_ZONE * zone_sizes[i])
+			{
+				if (!((pos = is_not_in_chunks(ptr, mem->alloc)) & 2))
+					return (pos);
+				return (1);
+			}
+			mem = mem->next;
+		}
+	}
+	return (1);
+}
 
 static void	prefix_nbr(char *buff, int size_base)
 {
@@ -57,11 +97,11 @@ void		putaddr(void *addr)
 }
 
 /*
-** Align memory on (mask + 1) bytes with 'align' > 0
+** Align memory on (mask + 1) bytes with (mask + 1) being a power of 2
 */
 
 
-size_t			ft_align(size_t size, size_t mask)
+size_t		ft_align(size_t size, size_t mask)
 {
 	return ((size + mask) & ~mask);
 }
@@ -71,9 +111,10 @@ size_t			ft_align(size_t size, size_t mask)
 ** Small if (type == 1), Large if (type == 2)
 */
 
-size_t			page_size(size_t type)
+size_t		page_size(size_t type)
 {
-	static const size_t	malloc_size[3] = {M_TINY, M_SMALL, M_LARGE};
+	static const size_t	malloc_size[3] = {MALLOC_TINY, MALLOC_SMALL, \
+											MALLOC_LARGE};
 
 	return (malloc_size[type]);
 }

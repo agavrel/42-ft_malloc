@@ -4,3 +4,139 @@ getchar();
 env DYLD_LIBRARY_PATH=.
 env DYLD_INSERT_LIBRARIES="libft_malloc.so"
 env DYLD_FORCE_FLAT_NAMESPACE=1
+
+# compile with -g
+
+run
+frame variable
+
+
+
+
+
+---------------------
+ENTERING MALLOC OF SIZE 32
+[256]=>[0x0001000ce000](0x0000000000001000ce020)
+page init = 0x1000ce020
+Process 8090 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.2
+    frame #0: 0x000000010009742b libft_malloc_x86_64_Darwin.so`chunk_create(chunk=0x00000001000ce020, size=64, prev=0x0000000000000000) at malloc.c:28
+   25
+   26  	static void		*chunk_create(t_chunk *chunk, size_t size, t_chunk *prev)
+   27  	{
+-> 28  		ft_printf("\n\naddress %p\n", chunk);
+   29  		chunk->size = ft_align(size, 0xf);
+   30  		if (!chunk->max_size)
+   31  		 	chunk->max_size = chunk->size;
+Target 0: (a.out) stopped.
+(lldb) u
+Ambiguous command 'u'. Possible matches:
+	undisplay
+	up
+	undisplay
+	up
+ambiguous command 'u'. Possible completions:
+	undisplay
+	up
+(lldb) s
+
+
+address 0x1000ce020
+Process 8090 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = step in
+    frame #0: 0x0000000100097440 libft_malloc_x86_64_Darwin.so`chunk_create(chunk=0x00000001000ce020, size=64, prev=0x0000000000000000) at malloc.c:29
+   26  	static void		*chunk_create(t_chunk *chunk, size_t size, t_chunk *prev)
+   27  	{
+   28  		ft_printf("\n\naddress %p\n", chunk);
+-> 29  		chunk->size = ft_align(size, 0xf);
+   30  		if (!chunk->max_size)
+   31  		 	chunk->max_size = chunk->size;
+   32  		chunk->next = chunk + chunk->max_size;
+Target 0: (a.out) stopped.
+(lldb) s
+Process 8090 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = step in
+    frame #0: 0x0000000100097d1c libft_malloc_x86_64_Darwin.so`ft_align(size=64, mask=15) at tools.c:66
+   63
+   64  	size_t		ft_align(size_t size, size_t mask)
+   65  	{
+-> 66  		return ((size + mask) & ~mask);
+   67  	}
+   68
+   69  	/*
+Target 0: (a.out) stopped.
+(lldb) s
+Process 8090 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = step in
+    frame #0: 0x000000010009744c libft_malloc_x86_64_Darwin.so`chunk_create(chunk=0x00000001000ce020, size=64, prev=0x0000000000000000) at malloc.c:29
+   26  	static void		*chunk_create(t_chunk *chunk, size_t size, t_chunk *prev)
+   27  	{
+   28  		ft_printf("\n\naddress %p\n", chunk);
+-> 29  		chunk->size = ft_align(size, 0xf);
+   30  		if (!chunk->max_size)
+   31  		 	chunk->max_size = chunk->size;
+   32  		chunk->next = chunk + chunk->max_size;
+Target 0: (a.out) stopped.
+(lldb) s
+Process 8090 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = step in
+    frame #0: 0x0000000100097454 libft_malloc_x86_64_Darwin.so`chunk_create(chunk=0x00000001000ce020, size=64, prev=0x0000000000000000) at malloc.c:30
+   27  	{
+   28  		ft_printf("\n\naddress %p\n", chunk);
+   29  		chunk->size = ft_align(size, 0xf);
+-> 30  		if (!chunk->max_size)
+   31  		 	chunk->max_size = chunk->size;
+   32  		chunk->next = chunk + chunk->max_size;
+   33  		ft_printf("%p\n", &chunk->next->prev);
+Target 0: (a.out) stopped.
+(lldb)
+(lldb) s
+Process 8090 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = step in
+    frame #0: 0x0000000100097463 libft_malloc_x86_64_Darwin.so`chunk_create(chunk=0x00000001000ce020, size=64, prev=0x0000000000000000) at malloc.c:31
+   28  		ft_printf("\n\naddress %p\n", chunk);
+   29  		chunk->size = ft_align(size, 0xf);
+   30  		if (!chunk->max_size)
+-> 31  		 	chunk->max_size = chunk->size;
+   32  		chunk->next = chunk + chunk->max_size;
+   33  		ft_printf("%p\n", &chunk->next->prev);
+   34  		chunk->next->prev = chunk;
+Target 0: (a.out) stopped.
+(lldb) s
+Process 8090 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = step in
+    frame #0: 0x000000010009747a libft_malloc_x86_64_Darwin.so`chunk_create(chunk=0x00000001000ce020, size=64, prev=0x0000000000000000) at malloc.c:32
+   29  		chunk->size = ft_align(size, 0xf);
+   30  		if (!chunk->max_size)
+   31  		 	chunk->max_size = chunk->size;
+-> 32  		chunk->next = chunk + chunk->max_size;
+   33  		ft_printf("%p\n", &chunk->next->prev);
+   34  		chunk->next->prev = chunk;
+   35  		chunk->next->size = 0;
+Target 0: (a.out) stopped.
+(lldb) p chunk->next
+(s_chunk *) $7 = 0x0000000000000000
+(lldb) frame variable
+(t_chunk *) chunk = 0x00000001000ce020
+(size_t) size = 64
+(t_chunk *) prev = 0x0000000000000000
+(lldb) chunk->size
+error: 'chunk-' is not a valid command.
+error: Unrecognized command 'chunk->size'.
+(lldb) p chunk->size
+(size_t) $8 = 64
+(lldb) print chunk->max_size
+(size_t) $9 = 64
+(lldb) s
+Process 8090 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = step in
+    frame #0: 0x0000000100097494 libft_malloc_x86_64_Darwin.so`chunk_create(chunk=0x00000001000ce020, size=64, prev=0x0000000000000000) at malloc.c:33
+   30  		if (!chunk->max_size)
+   31  		 	chunk->max_size = chunk->size;
+   32  		chunk->next = chunk + chunk->max_size;
+-> 33  		ft_printf("%p\n", &chunk->next->prev);
+   34  		chunk->next->prev = chunk;
+   35  		chunk->next->size = 0;
+   36  		chunk->next->max_size = 0;
+Target 0: (a.out) stopped.
+(lldb)

@@ -6,89 +6,82 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:14:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/13 20:38:02 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/16 21:49:06 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "malloc.h"
 
-/*
-** Remove page if it contains no other chunks left
-*/
-
-static inline void		free_page(t_page *page)
+static void			free_unused_mem(const int malloc_size, t_page *mem)
 {
-	if (page->prev)
-		page->prev->next = page->next;
-	if (page->next)
-		page->next->prev = page->prev;
-	page = NULL;
-}
-/*
-** chunk being fred have their size set to 0 but they keep the max size info
-*/
+	size_t const	zone_sizes[2] = {ZONE_TINY, ZONE_SMALL};
 
-static inline void		free_chunk(t_chunk *chunk)
-{
-	chunk->size = 0;
+	if (mem->prev)
+		mem->prev->next = mem->next;
+	else if (malloc_size)
+		g_malloc_pages.small = mem->next;
+	else
+		g_malloc_pages.tiny = mem->next;
+	if (mem->next)
+		mem->next->prev = mem->prev;
+	munmap(mem, MALLOC_ZONE * zone_sizes[malloc_size]);
 }
 
-/*
-** The chunk should be contained in the page hence we now need to find it
-*/
-
-static inline void		get_chunk_that_has_to_be_fred(t_page *page, void *ptr)
+static inline void	free_tiny_small(t_block *chunk, \
+						const int malloc_size, t_page *mem)
 {
-	t_chunk		*chunk;
+	if (chunk->prev)
+		chunk->prev->next = chunk->next;
+	else
+		mem->alloc = chunk->next;
+	if (chunk->next)
+		chunk->next->prev = chunk->prev;
+	chunk->prev = NULL;
+	chunk->next = mem->free;
+	if (mem->free)
+		mem->free->prev = chunk;
+	mem->free = chunk;
+	if (!mem->alloc)
+		free_unused_mem(malloc_size, mem);
+}
 
-	chunk = (t_chunk *)page->first_chunk;
-	while (chunk)
+static inline void	free_large(t_block *chunk)
+{
+	const size_t	msize = MALLOC_PAGE(chunk->size + sizeof(t_block));
+
+	if (chunk->prev)
+		chunk->prev->next = chunk->next;
+	else
+		g_malloc_pages.large = chunk->next;
+	if (chunk->next)
+		chunk->next->prev = chunk->prev;
+	munmap(chunk, msize);
+}
+
+static void			free_chunk(t_block *chunk)
+{
+	const int		malloc_size = MALLOC_SIZE(chunk->size);
+	size_t const	zone_sizes[2] = {ZONE_TINY, ZONE_SMALL};
+	void			*mem_zones[2] = {g_malloc_pages.tiny, g_malloc_pages.small};
+	t_page	*mem;
+
+	if (malloc_size == MALLOC_LARGE)
+		free_large(chunk);
+	else
 	{
-		if (chunk == ptr)
-		{
-			free_chunk(ptr);
-			--page->chunk_nb;
-			if (page->chunk_nb == 0)
-				free_page(page);
-		}
-		chunk = chunk->next;
+		mem = mem_zones[malloc_size];
+		while (!((void *)chunk < (void *)mem + MALLOC_ZONE * \
+			zone_sizes[malloc_size] && (void *)chunk > (void *)mem))
+			mem = mem->next;
+		free_tiny_small(chunk, malloc_size, mem);
 	}
 }
 
-/*
-** the page that contain
-*/
-
-static inline void		get_page_containing_chunk(void *ptr)
+void				free(void *ptr)
 {
-	t_page		*page;
-	size_t		i;
+	pthread_mutex_lock(&g_malloc_mutex);
 
-	i = 0;
-	while (i < 3)
-	{
-		page = g_page[i];
-		while (page)
-		{
-			if ((char *)page < (char *)ptr \
-						&& (char *)ptr < (char *)page + page->max_size)
-				get_chunk_that_has_to_be_fred(page, ptr);
-			page = page->next;
-		}
-		++i;
-	}
-}
-
-/*
-** first check that the *ptr is not null, if not we try to find a memory page
-** containg the ptr as a memory block (t_chunk)
-*/
-
-void    				free(void *ptr)
-{
-
-	ft_printf("ENTERING FREE %p\n", ptr);
-	if (ptr)
-		get_page_containing_chunk(ptr);
-	ft_printf("EXITING FREE \n");
+	if (!(!ptr || malloc_out_of_zones(ptr)))
+		free_chunk(ptr - sizeof(t_block));
+	pthread_mutex_unlock(&g_malloc_mutex);
 }

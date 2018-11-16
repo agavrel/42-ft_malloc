@@ -6,7 +6,7 @@
 #    By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/10/14 14:05:50 by angavrel          #+#    #+#              #
-#    Updated: 2018/10/13 20:36:39 by angavrel         ###   ########.fr        #
+#    Updated: 2018/11/16 22:21:41 by angavrel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,7 @@ SRCDIR = srcs/
 
 OBJDIR = objs
 
-#CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -g -Werror
 
 LDFLAGS = -shared
 
