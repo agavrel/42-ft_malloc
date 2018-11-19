@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 17:31:00 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 18:12:27 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ static inline void	*malloc_tiny_small(t_page **page, \
 	{
 		if ((mem = mmap(0, zone_size * MALLOC_ZONE, PROT_READ | PROT_WRITE, \
 				MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED)
-			return (NULL);
+			return (malloc_error(2, "Could not allocate large malloc"));
 		mem_init_zone(page, mem, zone_size);
 	}
 	return (block_create(&mem->free, &mem->alloc, ft_align(size, 31)));
@@ -93,7 +93,7 @@ static void			*malloc_large(size_t size)
 
 	if (((block = mmap(0, msize, PROT_READ | PROT_WRITE, \
 			MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED))
-		return (NULL);
+		return (malloc_error(2, "Could not allocate large malloc"));
 	block->size = ft_align(size, 31);
 	block->prev = NULL;
 	if ((block->next = g_malloc_pages.large))

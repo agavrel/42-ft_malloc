@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/10/03 20:09:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 17:24:54 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 18:11:43 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,6 @@ void		putaddr(void *addr)
 /*
 ** Align memory on (mask + 1) bytes with (mask + 1) being a power of 2
 */
-
 
 size_t		ft_align(size_t size, size_t mask)
 {

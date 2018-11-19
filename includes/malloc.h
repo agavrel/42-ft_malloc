@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 17:34:17 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 18:11:28 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,14 @@
 /*
 ** malloc size thresholds to point to most suitable method
 */
-# define MALLOC_TINY	0
-# define MALLOC_SMALL	1
-# define MALLOC_LARGE	2
+
+typedef enum
+{
+    MALLOC_TINY,
+    MALLOC_SMALL,
+    MALLOC_LARGE
+}		e_malloc_type;
+
 # define ZONE_SMALL		(1024)
 # define ZONE_TINY		(64)
 # define MALLOC_ZONE	(128)
@@ -70,46 +75,52 @@
 
 typedef struct				s_block
 {
-	struct s_block		*next;
-	struct s_block		*prev;
+	struct s_block			*next;
+	struct s_block			*prev;
 	size_t					size;
-}							t_block;
+}__attribute__((aligned(32)))t_block;
 
 typedef struct				s_page
 {
 	struct s_page			*next;
 	struct s_page			*prev;
-	t_block				*alloc;
-	t_block				*free;
-}							t_page;
+	t_block					*alloc;
+	t_block					*free;
+}__attribute__((aligned(32)))t_page;
 
 typedef struct				s_malloc_pages
 {
 	t_page					*tiny;
 	t_page					*small;
-	t_block				*large;
+	t_block					*large;
 }							t_malloc_pages;
+
+/*
+** malloc pages and multithreading
+*/
 
 extern t_malloc_pages		g_malloc_pages;
 extern pthread_mutex_t		g_malloc_mutex;
-bool 	is_valid_block(const void *ptr, t_block *chunk);
-//int							malloc_out_of_zones(const void *ptr);
 
 /*
-** ***************************** malloc public *********************************
+** Main functions
 */
 
-void						free(void *ptr);
-void						*malloc(size_t size);
-void						*calloc(size_t count, size_t size);
-void						*realloc(void *ptr, size_t size);
-void						*reallocf(void *ptr, size_t size);
+void				*malloc(size_t size);
+void				free(void *ptr);
+void				*realloc(void *ptr, size_t size);
+void				*calloc(size_t count, size_t size);
+void				*reallocf(void *ptr, size_t size);
 
-void						show_alloc_mem();
-void						show_alloc_mem_hex(void *ptr);
-void						show_alloc_mem_minimap();
+/*
+** Utility functions
+*/
 
-bool				errors(const int err, const char *str);
+bool 				is_valid_block(const void *ptr, t_block *block);
+void				show_alloc_mem();
+void				show_alloc_mem_hex(void *ptr);
+void				show_alloc_mem_minimap();
+void				*malloc_error(const int err, const char *str);
 void				putaddr(void *addr);
 void				ft_putsizebase(size_t nb, int size_base);
 size_t				page_size(size_t type);

@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/20 18:46:19 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 17:24:51 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 17:59:31 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ static inline size_t	dump_line(const char *ptr, const size_t size)
 	}
 	ft_printf("  ");
 	i = 0;
-	while (i < 0x10 && size > i)
+	while (i < 0x10 && i < size)
 	{
 		ft_isprint(ptr[i]) ? ft_printf("%c", ptr[i]) : ft_printf(".");
 		i++;
