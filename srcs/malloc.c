@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 18:12:27 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 18:55:19 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,9 @@ static inline void	*block_create(t_block **free, t_block **alloc, \
 static inline void	mem_init_zone(t_page **page, \
 					t_page *mem, const size_t zone_size)
 {
-	t_block	*free_block = (void*)mem + sizeof(t_page);
+	t_block	*free_block;
 
+	free_block = (void*)mem + sizeof(t_page);
 	mem->prev = NULL;
 	if ((mem->next = *page))
 		mem->next->prev = mem;
@@ -70,30 +71,25 @@ static inline void	*malloc_tiny_small(t_page **page, \
 	{
 		if ((mem = mmap(0, zone_size * MALLOC_ZONE, PROT_READ | PROT_WRITE, \
 				MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED)
-			return (malloc_error(2, "Could not allocate large malloc"));
+			return ((void*)malloc_error(2, "Could not allocate large malloc"));
 		mem_init_zone(page, mem, zone_size);
 	}
 	return (block_create(&mem->free, &mem->alloc, ft_align(size, 31)));
 }
 
-static void			*malloc_tiny(size_t size)
-{
-	return (malloc_tiny_small(&g_malloc_pages.tiny, ZONE_TINY, size));
-}
-
-static void			*malloc_small(size_t size)
-{
-	return (malloc_tiny_small(&g_malloc_pages.small, ZONE_SMALL, size));
-}
+/*
+** Large malloc are aligned on 0x1000 with the handy ft_align function and its
+** mask. Please refer to tools.c to check this function.
+*/
 
 static void			*malloc_large(size_t size)
 {
-	const size_t	msize = MALLOC_PAGE(size + sizeof(t_block));
+	const size_t	msize = ft_align(size + sizeof(t_block), MASK_0XFFF);
 	t_block			*block;
 
 	if (((block = mmap(0, msize, PROT_READ | PROT_WRITE, \
 			MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED))
-		return (malloc_error(2, "Could not allocate large malloc"));
+		return ((void*)malloc_error(2, "Could not allocate large malloc"));
 	block->size = ft_align(size, 31);
 	block->prev = NULL;
 	if ((block->next = g_malloc_pages.large))
@@ -109,14 +105,18 @@ static void			*malloc_large(size_t size)
 
 void				*malloc(size_t size)
 {
-	static void 	*(*malloc_type[3])(size_t) = {&malloc_tiny, \
-							&malloc_small, &malloc_large};
+	const size_t	type = (size > ZONE_TINY) + (size > ZONE_SMALL);
 	void			*ptr;
 
 	if (!size)
 		return (NULL);
 	pthread_mutex_lock(&g_malloc_mutex);
-	ptr = malloc_type[(size > ZONE_TINY) + (size > ZONE_SMALL)](size);
+	if (type == MALLOC_TINY)
+		ptr = malloc_tiny_small(&g_malloc_pages.tiny, ZONE_TINY, size);
+	else if (type == MALLOC_SMALL)
+		ptr = malloc_tiny_small(&g_malloc_pages.small, ZONE_SMALL, size);
+	else
+		ptr = malloc_large(size);
 	pthread_mutex_unlock(&g_malloc_mutex);
 	return (ptr);
 }

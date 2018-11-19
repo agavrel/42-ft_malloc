@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/06 06:02:33 by angavrel          #+#    #+#             */
-/*   Updated: 2018/10/03 20:06:13 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 19:03:06 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,8 +107,7 @@ void	itoa_base_printf(uintmax_t n, int b, t_printf *p)
 	((p->f & F_SHARP) && b == 8 && !n && (p->f & F_APP_PRECI)) ?
 	++p->printed : 0;
 	((p->f & F_SHARP) && b == 16 && !(p->f & F_ZERO)) ? p->min_length -= 2 : 0;
-	if ((p->padding = (p->min_length - p->printed)) < 0)
-		p->padding = 0;
+	p->min_length - p->printed < 0 ? p->padding = 0 : 0;
 	padding(p, 0);
 	if ((n || (p->f & F_POINTER))
 		&& (p->f & F_SHARP) && ((b == 8 && !ext) || (b == 16)))

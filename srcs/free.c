@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:14:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 18:11:29 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 18:55:51 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ static inline void	free_tiny_small(t_block *block, \
 
 static inline void	free_large(t_block *block)
 {
-	const size_t	msize = MALLOC_PAGE(block->size + sizeof(t_block));
+	const size_t	msize = ft_align(block->size + sizeof(t_block), MASK_0XFFF);
 
 	if (block->prev)
 		block->prev->next = block->next;

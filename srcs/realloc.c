@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:13:21 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 17:43:47 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 18:48:14 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,10 +44,10 @@ bool	is_valid_block(const void *ptr, t_block *block)
 ** allocated with calloc(3), realloc(3) does not guarantee that the additional
 ** memory is also zero-filled.
 **
-** 1/ Check that ptr and size are valid
-** 2/
-** 3/ Check that the new size is inferior to the reallocating ptr size and if so
-** execute a succesful memory reallocation
+** 1/ Check that ptr and size are not NULL
+** 2/ Check that the ptr is a valid one corresponding to a memory block
+** 3/ Check that the new size is inferior to the reallocating ptr size
+** and if so proceed to a succesful memory reallocation
 ** 4/ if not execute a regular malloc and then free the reallocating ptr
 */
 
@@ -62,7 +62,7 @@ void	*realloc(void *ptr, size_t size)
 	if (!is_valid_block(ptr, g_malloc_pages.large))
 	{
 		pthread_mutex_unlock(&g_malloc_mutex);
-		return (NULL);
+		return ((void*)malloc_error(1, "could not reallocate its memory"));
 	}
 	block_header = ptr - sizeof(t_block);
 	if (size <= block_header->size)
