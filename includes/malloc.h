@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/16 21:49:06 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 17:34:17 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@
 # define MALLOC_TINY	0
 # define MALLOC_SMALL	1
 # define MALLOC_LARGE	2
-# define MALLOC_SIZE(x)	(((x) > ZONE_TINY) + ((x) > ZONE_SMALL))
 # define ZONE_SMALL		(1024)
 # define ZONE_TINY		(64)
 # define MALLOC_ZONE	(128)
@@ -93,8 +92,8 @@ typedef struct				s_malloc_pages
 
 extern t_malloc_pages		g_malloc_pages;
 extern pthread_mutex_t		g_malloc_mutex;
-
-int							malloc_out_of_zones(const void *ptr);
+bool 	is_valid_block(const void *ptr, t_block *chunk);
+//int							malloc_out_of_zones(const void *ptr);
 
 /*
 ** ***************************** malloc public *********************************

@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/02/20 18:46:19 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/16 22:29:40 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 17:24:51 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,44 +15,44 @@
 static inline size_t	show_alloc_tiny_small(t_page *mem, \
 								const char *size_str)
 {
-	t_block				*chunk;
+	t_block				*block;
 	size_t				total;
 
 	total = 0;
 	while (mem)
 	{
 		ft_printf("%s : %p\n", size_str, mem);
-		chunk = mem->alloc;
-		while (chunk)
+		block = mem->alloc;
+		while (block)
 		{
-			ft_printf("%p - %p : %lu bytes\n", (void *)chunk + \
-			sizeof(t_block), (void *)chunk + sizeof(t_block) + \
-			chunk->size, chunk->size);
-			total += chunk->size;
-			chunk = chunk->next;
+			ft_printf("%p - %p : %lu bytes\n", (void *)block + \
+			sizeof(t_block), (void *)block + sizeof(t_block) + \
+			block->size, block->size);
+			total += block->size;
+			block = block->next;
 		}
 		mem = mem->next;
 	}
-	return total;
+	return (total);
 }
 
-static inline size_t	show_alloc_large()
+static inline size_t	show_alloc_large(void)
 {
-	t_block			*chunk;
+	t_block			*block;
 	size_t			total;
 
 	total = 0;
 	ft_printf("LARGE : %p\n", g_malloc_pages.large);
-	chunk = g_malloc_pages.large;
-	while (chunk)
+	block = g_malloc_pages.large;
+	while (block)
 	{
-		ft_printf("%p - %p : %lu bytes\n", (void *)chunk + \
-		sizeof(t_block), (void *)chunk + sizeof(t_block) + \
-		chunk->size, chunk->size);
-		total += chunk->size;
-		chunk = chunk->next;
+		ft_printf("%p - %p : %lu bytes\n", (void *)block + \
+		sizeof(t_block), (void *)block + sizeof(t_block) + \
+		block->size, block->size);
+		total += block->size;
+		block = block->next;
 	}
-	return total;
+	return (total);
 }
 
 void					show_alloc_mem(void)
@@ -71,31 +71,27 @@ void					show_alloc_mem(void)
 	pthread_mutex_unlock(&g_malloc_mutex);
 }
 
-
 static inline size_t	dump_line(const char *ptr, const size_t size)
 {
 	size_t				i;
 
 	ft_printf("%.16p: ", ptr);
 	i = 0;
-	while (i < 16)
+	while (i < 0x10)
 	{
-		if (!(i % 2))
+		if (!(i & 1))
 			ft_printf(" ");
 		if (size <= i)
 			ft_printf("  ");
-		if (size > i)
+		else
 			ft_printf("%02x", ptr[i]);
 		i++;
 	}
 	ft_printf("  ");
 	i = 0;
-	while (i < 16 && size > i)
+	while (i < 0x10 && size > i)
 	{
-		if (ft_isprint(ptr[i]))
-			ft_printf("%c", ptr[i]);
-		else
-			ft_printf(".");
+		ft_isprint(ptr[i]) ? ft_printf("%c", ptr[i]) : ft_printf(".");
 		i++;
 	}
 	return (i);
@@ -108,11 +104,11 @@ void					show_alloc_mem_hex(void *ptr)
 	size_t				i;
 
 	pthread_mutex_lock(&g_malloc_mutex);
-	if (ptr && !malloc_out_of_zones(ptr))
+	if (ptr)
 	{
 		size = ((t_block *)(ptr - sizeof(t_block)))->size;
 		ft_printf("%s memory area of %lu bytes starting at %p:\n", \
-			zone_str[MALLOC_SIZE(size)], size, ptr);
+			zone_str[page_size(size)], size, ptr);
 		while (size)
 		{
 			i = dump_line(ptr, size);

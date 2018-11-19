@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:14:34 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/16 21:49:06 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 17:33:52 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,61 +27,59 @@ static void			free_unused_mem(const int malloc_size, t_page *mem)
 	munmap(mem, MALLOC_ZONE * zone_sizes[malloc_size]);
 }
 
-static inline void	free_tiny_small(t_block *chunk, \
+static inline void	free_tiny_small(t_block *block, \
 						const int malloc_size, t_page *mem)
 {
-	if (chunk->prev)
-		chunk->prev->next = chunk->next;
+	if (block->prev)
+		block->prev->next = block->next;
 	else
-		mem->alloc = chunk->next;
-	if (chunk->next)
-		chunk->next->prev = chunk->prev;
-	chunk->prev = NULL;
-	chunk->next = mem->free;
+		mem->alloc = block->next;
+	if (block->next)
+		block->next->prev = block->prev;
+	block->prev = NULL;
+	block->next = mem->free;
 	if (mem->free)
-		mem->free->prev = chunk;
-	mem->free = chunk;
+		mem->free->prev = block;
+	mem->free = block;
 	if (!mem->alloc)
 		free_unused_mem(malloc_size, mem);
 }
 
-static inline void	free_large(t_block *chunk)
+static inline void	free_large(t_block *block)
 {
-	const size_t	msize = MALLOC_PAGE(chunk->size + sizeof(t_block));
+	const size_t	msize = MALLOC_PAGE(block->size + sizeof(t_block));
 
-	if (chunk->prev)
-		chunk->prev->next = chunk->next;
+	if (block->prev)
+		block->prev->next = block->next;
 	else
-		g_malloc_pages.large = chunk->next;
-	if (chunk->next)
-		chunk->next->prev = chunk->prev;
-	munmap(chunk, msize);
+		g_malloc_pages.large = block->next;
+	if (block->next)
+		block->next->prev = block->prev;
+	munmap(block, msize);
 }
 
-static void			free_chunk(t_block *chunk)
+static void			free_block(t_block *block)
 {
-	const int		malloc_size = MALLOC_SIZE(chunk->size);
+	const int		type = page_size(block->size);
 	size_t const	zone_sizes[2] = {ZONE_TINY, ZONE_SMALL};
-	void			*mem_zones[2] = {g_malloc_pages.tiny, g_malloc_pages.small};
-	t_page	*mem;
+	t_page			*mem;
 
-	if (malloc_size == MALLOC_LARGE)
-		free_large(chunk);
+	if (type == MALLOC_LARGE)
+		free_large(block);
 	else
 	{
-		mem = mem_zones[malloc_size];
-		while (!((void *)chunk < (void *)mem + MALLOC_ZONE * \
-			zone_sizes[malloc_size] && (void *)chunk > (void *)mem))
+		mem = (!type) ? g_malloc_pages.tiny : g_malloc_pages.small;
+		while (!((void *)block < (void *)mem + MALLOC_ZONE * \
+			zone_sizes[type] && (void *)block > (void *)mem))
 			mem = mem->next;
-		free_tiny_small(chunk, malloc_size, mem);
+		free_tiny_small(block, type, mem);
 	}
 }
 
 void				free(void *ptr)
 {
 	pthread_mutex_lock(&g_malloc_mutex);
-
-	if (!(!ptr || malloc_out_of_zones(ptr)))
-		free_chunk(ptr - sizeof(t_block));
+	if (ptr && is_valid_block(ptr, g_malloc_pages.large))
+		free_block(ptr - sizeof(t_block));
 	pthread_mutex_unlock(&g_malloc_mutex);
 }

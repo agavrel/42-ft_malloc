@@ -6,87 +6,106 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:13:21 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/16 22:17:00 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 17:43:47 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "malloc.h"
 
 /*
-** The realloc() function tries to change the size of the allocation pointed to
-** by ptr to size, and returns ptr.
-** If there is not enough room to enlarge the memory allocation pointed to by
-** ptr, realloc() creates a new allocation, copies as much of the old data
-** pointed to by ptr as will fit to the new allocation, frees the old
-** allocation, and returns a pointer to the allocated memory.
-** If ptr is NULL, realloc() is identical to a call to malloc() for
-** size bytes.  If size is zero and ptr is not NULL, a new, minimum sized object
-** is allocated and the original object is freed.  When extending a region
-** allocated with calloc(3), realloc(3) does not guarantee that the
-** additional memory is also zero-filled.
+** Go through list of block and check if we can identify a valid block address
+** corresponding to the pointer sent. We add the header sizeof(t_block).
 */
 
-static inline int	is_reallocable(t_block *block, size_t size)
+bool	is_valid_block(const void *ptr, t_block *block)
 {
-	const int		malloc_size = MALLOC_SIZE(block->size);
+	void		*block_addr;
 
-	if (malloc_size == MALLOC_TINY)
-		return (size <= ZONE_TINY);
-	else if (malloc_size == MALLOC_SMALL)
-		return (size <= ZONE_SMALL);
-	return (size + sizeof(t_block) <= \
-			MALLOC_PAGE(block->size + sizeof(t_block)));
+	block_addr = block + sizeof(t_block);
+	while (block && block_addr < ptr)
+	{
+		if (block_addr == ptr)
+			return (true);
+		block = block->next;
+		block_addr = block + sizeof(t_block);
+	}
+	return (false);
 }
 
-static inline void	*bitter_realloc(void *ptr, size_t size)
-{
-	void			*new;
-	size_t			old_size;
+/*
+** The realloc() function tries to change the size of the allocation pointed to
+** by ptr to size, and returns ptr.  If there is not enough room to enlarge the
+** memory allocation pointed to by ptr, realloc() creates a new allocation,
+** copies as much of the old data pointed to by ptr as will fit to the new
+** allocation, frees the old allocation, and returns a pointer to the allocated
+** memory.  If ptr is NULL, realloc() is identical to a call to malloc() for
+** size bytes.  If size is zero and ptr is not NULL, a new, minimum sized object
+** is allocated and the original object is freed.  When extending a region
+** allocated with calloc(3), realloc(3) does not guarantee that the additional
+** memory is also zero-filled.
+**
+** 1/ Check that ptr and size are valid
+** 2/
+** 3/ Check that the new size is inferior to the reallocating ptr size and if so
+** execute a succesful memory reallocation
+** 4/ if not execute a regular malloc and then free the reallocating ptr
+*/
 
-	if (!(new = malloc(size)))
-		return (NULL);
-	old_size = ((t_block *)(ptr - sizeof(t_block)))->size;
-	ft_memcpy(new, ptr, old_size);
-	free(ptr);
-	return (new);
-}
-
-void				*realloc(void *ptr, size_t size)
+void	*realloc(void *ptr, size_t size)
 {
+	void		*new;
+	t_block		*block_header;
+
 	if (!ptr || !size)
 		return (malloc(size));
 	pthread_mutex_lock(&g_malloc_mutex);
-	if (malloc_out_of_zones(ptr))
+	if (!is_valid_block(ptr, g_malloc_pages.large))
 	{
 		pthread_mutex_unlock(&g_malloc_mutex);
 		return (NULL);
 	}
-	if (is_reallocable(ptr - sizeof(t_block), size))
+	block_header = ptr - sizeof(t_block);
+	if (size <= block_header->size)
 	{
-		((t_block *)(ptr - sizeof(t_block)))->size = size;
+		block_header->size = size;
 		pthread_mutex_unlock(&g_malloc_mutex);
 		return (ptr);
 	}
 	pthread_mutex_unlock(&g_malloc_mutex);
-	return (bitter_realloc(ptr, size));
+	if (!(new = malloc(size)))
+		return (NULL);
+	ft_memcpy(new, ptr, block_header->size);
+	free(ptr);
+	return (new);
 }
 
-void				*reallocf(void *ptr, size_t size)
+/*
+** The reallocf() function is identical to the realloc() function, except that
+** it will free the passed pointer when the requested memory cannot be
+** allocated. This is a FreeBSD specific API designed to ease the problems with
+** traditional coding styles for realloc causing memory leaks in libraries.
+*/
+
+void	*reallocf(void *ptr, size_t size)
 {
-	void			*new;
+	void		*new;
 
 	if (!(new = realloc(ptr, size)))
 		free(ptr);
 	return (new);
 }
 
-void				*calloc(size_t count, size_t size)
+/*
+** The calloc() function contiguously allocates enough space for count objects
+** that are size bytes of memory each and returns a pointer to the allocated
+** memory.  The allocated memory is filled with bytes of value zero.
+*/
+
+void	*calloc(size_t count, size_t size)
 {
-	const size_t	area = count * size;
 	void			*ptr;
 
-
-	if ((ptr = malloc(area)))
-		ft_bzero(ptr, area);
+	if ((ptr = malloc(count * size)))
+		ft_bzero(ptr, count * size);
 	return (ptr);
 }

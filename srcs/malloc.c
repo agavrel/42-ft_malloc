@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/16 22:28:44 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 17:31:00 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,11 +41,11 @@ static inline void	mem_init_zone(t_page **page, \
 					t_page *mem, const size_t zone_size)
 {
 	t_block	*free_block = (void*)mem + sizeof(t_page);
+
 	mem->prev = NULL;
-	mem->next = *page;
-	*page = mem;
-	if (mem->next)
+	if ((mem->next = *page))
 		mem->next->prev = mem;
+	*page = mem;
 	mem->alloc = NULL;
 	mem->free = free_block;
 	while ((void*)free_block + (zone_size + sizeof(t_block)) * 2 < \
@@ -89,18 +89,17 @@ static void			*malloc_small(size_t size)
 static void			*malloc_large(size_t size)
 {
 	const size_t	msize = MALLOC_PAGE(size + sizeof(t_block));
-	t_block	*ptr;
+	t_block			*block;
 
-	ptr = mmap(0, msize, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
-	if (ptr == MAP_FAILED)
+	if (((block = mmap(0, msize, PROT_READ | PROT_WRITE, \
+			MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED))
 		return (NULL);
-	ptr->next = g_malloc_pages.large;
-	ptr->prev = NULL;
-	ptr->size = size;
-	if (g_malloc_pages.large)
-		g_malloc_pages.large->prev = ptr;
-	g_malloc_pages.large = ptr;
-	return ((void*)ptr + sizeof(t_block));
+	block->size = ft_align(size, 31);
+	block->prev = NULL;
+	if ((block->next = g_malloc_pages.large))
+		g_malloc_pages.large->prev = block;
+	g_malloc_pages.large = block;
+	return ((void*)block + sizeof(t_block));
 }
 
 /*
@@ -110,8 +109,8 @@ static void			*malloc_large(size_t size)
 
 void				*malloc(size_t size)
 {
-	static void 	*(*malloc_type[3])(size_t) = \
-			{&malloc_tiny, &malloc_small, &malloc_large};
+	static void 	*(*malloc_type[3])(size_t) = {&malloc_tiny, \
+							&malloc_small, &malloc_large};
 	void			*ptr;
 
 	if (!size)
@@ -119,6 +118,5 @@ void				*malloc(size_t size)
 	pthread_mutex_lock(&g_malloc_mutex);
 	ptr = malloc_type[(size > ZONE_TINY) + (size > ZONE_SMALL)](size);
 	pthread_mutex_unlock(&g_malloc_mutex);
-
 	return (ptr);
 }
