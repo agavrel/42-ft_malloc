@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:01:12 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 18:46:00 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 19:17:29 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,7 +109,7 @@ void					*reallocf(void *ptr, size_t size);
 */
 
 size_t					ft_align(size_t size, size_t mask);
-bool					is_valid_block(const void *ptr, t_block *block);
+bool					is_valid_block(const void *ptr, size_t size);
 void					show_alloc_mem();
 void					show_alloc_mem_hex(void *ptr);
 void					show_alloc_mem_minimap();

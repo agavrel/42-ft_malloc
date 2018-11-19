@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/06/09 22:16:06 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 18:46:52 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 19:14:32 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,6 @@ bool		malloc_error(const int err, const char *str)
 		"mmap MAP_FAILED error: "
 	};
 
-	ft_dprintf(2, "%s%s", msg[err], str);
+	ft_dprintf(2, "%s%s\n", msg[err], str);
 	return (false);
 }

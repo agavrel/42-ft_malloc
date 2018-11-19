@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:13:21 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 18:48:14 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/11/19 19:25:09 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,17 @@
 ** corresponding to the pointer sent. We add the header sizeof(t_block).
 */
 
-bool	is_valid_block(const void *ptr, t_block *block)
+bool	is_valid_block(const void *ptr, size_t size)
 {
 	void		*block_addr;
+	t_block		*block;
 
+	if (size > ZONE_SMALL)
+		block = g_malloc_pages.large;
+	else if (size > ZONE_TINY)
+		block =  (t_block*)g_malloc_pages.small + sizeof(t_page);
+	else
+		block =  (t_block*)g_malloc_pages.tiny + sizeof(t_page);
 	block_addr = block + sizeof(t_block);
 	while (block && block_addr < ptr)
 	{
@@ -59,10 +66,10 @@ void	*realloc(void *ptr, size_t size)
 	if (!ptr || !size)
 		return (malloc(size));
 	pthread_mutex_lock(&g_malloc_mutex);
-	if (!is_valid_block(ptr, g_malloc_pages.large))
+	if (!is_valid_block(ptr, size))
 	{
 		pthread_mutex_unlock(&g_malloc_mutex);
-		return ((void*)malloc_error(1, "could not reallocate its memory"));
+		return (NULL);//(void*)malloc_error(1, "could not reallocate its memory"));
 	}
 	block_header = ptr - sizeof(t_block);
 	if (size <= block_header->size)

@@ -6,7 +6,7 @@
 #    By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2017/10/14 14:05:50 by angavrel          #+#    #+#              #
-#    Updated: 2018/11/16 22:21:41 by angavrel         ###   ########.fr        #
+#    Updated: 2018/11/19 19:14:02 by angavrel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,7 +26,8 @@ SRC =	malloc.c \
 		free.c \
 		realloc.c \
 		malloc_display.c \
-		tools.c
+		tools.c \
+		errors.c
 
 SRCDIR = srcs/
 
