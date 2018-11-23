@@ -22,9 +22,9 @@ bool	is_valid_block(const void *ptr, size_t size)
 	void		*block_addr;
 	t_block		*block;
 
-	if (size > ZONE_SMALL)
+	if (size > (1 << 10))
 		block = g_malloc_pages.large;
-	else if (size > ZONE_TINY)
+	else if (size > (1 << 6))
 		block =  (t_block*)g_malloc_pages.small + sizeof(t_page);
 	else
 		block =  (t_block*)g_malloc_pages.tiny + sizeof(t_page);

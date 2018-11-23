@@ -12,12 +12,7 @@
 
 #include "malloc.h"
 
-/*static void			free_unused_mem(const int malloc_size, t_page *mem)
-{
-}*/
-
-static inline void	free_not_large(t_block *block, \
-						const int malloc_size, t_page *mem)
+static inline void	free_not_large(t_block *block, const int type, t_page *mem)
 {
 	if (block->prev)
 		block->prev->next = block->next;
@@ -34,13 +29,13 @@ static inline void	free_not_large(t_block *block, \
 	{
 		if (mem->prev)
 			mem->prev->next = mem->next;
-		else if (malloc_size)
+		else if (type)
 				g_malloc_pages.tiny = mem->next;
 		else
 				g_malloc_pages.small = mem->next;
 		if (mem->next)
 			mem->next->prev = mem->prev;
-		munmap(mem, MALLOC_ZONE << (6 + (malloc_size << 2)));
+		munmap(mem, MALLOC_ZONE << (6 + (type << 2)));
 	}
 }
 
@@ -70,7 +65,6 @@ static inline void	free_large(t_block *block)
 static void			free_block(t_block *block)
 {
 	const int		type = page_size(block->size);
-	size_t const	zone_sizes[2] = {ZONE_TINY, ZONE_SMALL};
 	t_page			*mem;
 
 	if (type == MALLOC_LARGE)
@@ -78,7 +72,7 @@ static void			free_block(t_block *block)
 	else
 	{
 		mem = g_malloc_pages.tiny + sizeof(t_page) * type;
-		while ((void *)mem + MALLOC_ZONE * zone_sizes[type] <= (void *)block \
+		while ((void *)mem + (MALLOC_ZONE << (6 + (type << 2))) <= (void *)block \
 						&& (void *)block <= (void *)mem)
 			mem = mem->next;
 		free_not_large(block, type, mem);
@@ -88,7 +82,7 @@ static void			free_block(t_block *block)
 void				free(void *ptr)
 {
 	pthread_mutex_lock(&g_malloc_mutex);
-	if (ptr && is_valid_block(ptr, ZONE_SMALL + 1))
+	if (ptr && is_valid_block(ptr, (1 << 6) + 1))
 		free_block(ptr - sizeof(t_block));
 	pthread_mutex_unlock(&g_malloc_mutex);
 }

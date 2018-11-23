@@ -74,6 +74,7 @@ size_t		page_size(size_t size)
 {
 	static const size_t	malloc_size[3] = {MALLOC_TINY, MALLOC_SMALL, \
 											MALLOC_LARGE};
+	const size_t	type = (size > (1 << 6)) + (size > (1 << 10));
 
-	return (malloc_size[(size > ZONE_TINY) + (size > ZONE_SMALL)]);
+	return (malloc_size[type]);
 }

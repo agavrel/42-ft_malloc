@@ -105,18 +105,20 @@ static void			*malloc_large(size_t size)
 
 void				*malloc(size_t size)
 {
-	const size_t	type = (size > ZONE_TINY) + (size > ZONE_SMALL);
+	const size_t	type = (size > (1 << 6)) + (size > (1 << 10));
 	void			*ptr;
 
 	if (!size)
 		return (NULL);
 	pthread_mutex_lock(&g_malloc_mutex);
-	if (type == MALLOC_TINY)
-		ptr = malloc_tiny_small(&g_malloc_pages.tiny, ZONE_TINY, size);
-	else if (type == MALLOC_SMALL)
-		ptr = malloc_tiny_small(&g_malloc_pages.small, ZONE_SMALL, size);
-	else
+	if (type == MALLOC_LARGE)
 		ptr = malloc_large(size);
+	else
+	{
+		t_page *page = g_malloc_pages.tiny + (type * sizeof(t_page));
+		ptr = malloc_tiny_small(&page, 1 << (6 + (type << 2)), size);
+	}
+
 	pthread_mutex_unlock(&g_malloc_mutex);
 	return (ptr);
 }
