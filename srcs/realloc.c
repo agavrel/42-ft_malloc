@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/01/17 22:13:21 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 19:25:09 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/12/07 15:15:58 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,9 @@ bool	is_valid_block(const void *ptr, size_t size)
 	if (size > ZONE_SMALL)
 		block = g_malloc_pages.large;
 	else if (size > ZONE_TINY)
-		block =  (t_block*)g_malloc_pages.small + sizeof(t_page);
+		block = (t_block*)g_malloc_pages.small + sizeof(t_page);
 	else
-		block =  (t_block*)g_malloc_pages.tiny + sizeof(t_page);
+		block = (t_block*)g_malloc_pages.tiny + sizeof(t_page);
 	block_addr = block + sizeof(t_block);
 	while (block && block_addr < ptr)
 	{
@@ -69,7 +69,7 @@ void	*realloc(void *ptr, size_t size)
 	if (!is_valid_block(ptr, size))
 	{
 		pthread_mutex_unlock(&g_malloc_mutex);
-		return (NULL);//(void*)malloc_error(1, "could not reallocate its memory"));
+		return (NULL);
 	}
 	block_header = ptr - sizeof(t_block);
 	if (size <= block_header->size)
