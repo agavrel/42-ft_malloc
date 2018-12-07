@@ -46,6 +46,8 @@ extern pthread_mutex_t	g_malloc_mutex;
 ** malloc size thresholds to point to most suitable malloc type functions
 */
 
+# define ZONE_SMALL		(1 << 10)
+# define ZONE_TINY		(1 << 6)
 # define MALLOC_ZONE	(1 << 7)
 # define MASK_0XFFF		(1 << 12) - 1
 
