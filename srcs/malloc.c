@@ -6,7 +6,7 @@
 /*   By: angavrel <angavrel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/10/14 18:06:26 by angavrel          #+#    #+#             */
-/*   Updated: 2018/11/19 18:55:19 by angavrel         ###   ########.fr       */
+/*   Updated: 2018/12/09 13:49:27 by angavrel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,13 +81,13 @@ static inline void	*malloc_tiny_small(t_page **page, \
 ** Large malloc are aligned on 0x1000 with the handy ft_align function and its
 ** mask. Please refer to tools.c to check this function.
 */
-
+// boolean static au debut du malloc, si cest la premiere fois alloue 100 espace
 static void			*malloc_large(size_t size)
 {
-	const size_t	msize = ft_align(size + sizeof(t_block), MASK_0XFFF);
+	const size_t	msize = ft_align(size + sizeof(t_block), getpagesize() - 1);
 	t_block			*block;
 
-	if (((block = mmap(0, msize, PROT_READ | PROT_WRITE, \
+	if (((block = mmap(0, msize * 100, PROT_READ | PROT_WRITE, \
 			MAP_ANON | MAP_PRIVATE, -1, 0)) == MAP_FAILED))
 		return ((void*)malloc_error(2, "Could not allocate large malloc"));
 	block->size = ft_align(size, 31);
